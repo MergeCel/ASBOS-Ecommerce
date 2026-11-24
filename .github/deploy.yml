@@ -1,0 +1,36 @@
+name: CI-CD ecommerce
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    name: CI - build image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Docker image
+        run: docker build -t ecommerce-web:ci .
+
+  deploy:
+    name: CD - deploy ke VPS
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Siapkan SSH
+        env:
+          SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          HOST_KEY: ${{ secrets.VPS_HOST_KEY }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          printf '%s\n' "$HOST_KEY" > ~/.ssh/known_hosts
+
+      - name: Jalankan deploy di VPS
+        env:
+          HOST: ${{ secrets.VPS_HOST }}
+          PORT: ${{ secrets.VPS_PORT }}
+          SSH_USER: ${{ secrets.VPS_USER }}
+        run: ssh -i ~/.ssh/id_deploy -o IdentitiesOnly=yes -o BatchMode=yes -p "$PORT" "$SSH_USER@$HOST" deploy
