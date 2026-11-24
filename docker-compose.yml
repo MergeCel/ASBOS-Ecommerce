@@ -3,6 +3,29 @@ services:
     build: .
     container_name: ecommerce-web
     restart: unless-stopped
-    env_file: .env
     ports:
       - "127.0.0.1:8080:80"
+    depends_on:
+      - api
+
+  api:
+    build: ./backend
+    container_name: ecommerce-api
+    restart: unless-stopped
+    environment:
+      DB_HOST: ${DB_HOST:-host.docker.internal}
+      DB_PORT: ${DB_PORT:-5432}
+      DB_NAME: ${DB_NAME:-ecommerce_db}
+      DB_USER: ${DB_USER:-ecommerce_user}
+      DB_PASSWORD: ${DB_PASSWORD:-}
+    extra_hosts:
+      # Membuat host.docker.internal tersedia di Linux (Docker Desktop sudah punya).
+      - "host.docker.internal:host-gateway"
+    expose:
+      - "5000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5000/api/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

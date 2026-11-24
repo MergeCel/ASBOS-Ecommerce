@@ -10,8 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Build Docker image
-        run: docker build -t ecommerce-web:ci .
+      - name: Build Docker images
+        run: docker compose build
 
   deploy:
     name: CD - deploy ke VPS
