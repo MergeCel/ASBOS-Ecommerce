@@ -34,4 +34,4 @@ jobs:
           HOST: ${{ secrets.VPS_HOST }}
           PORT: ${{ secrets.VPS_PORT }}
           SSH_USER: ${{ secrets.VPS_USER }}
-        run: ssh -i ~/.ssh/id_deploy -o IdentitiesOnly=yes -o BatchMode=yes -p "$PORT" "$SSH_USER@$HOST" deploy
+        run: ssh -i ~/.ssh/id_deploy -o IdentitiesOnly=yes -o BatchMode=yes -p "$PORT" "$SSH_USER@$HOST" /opt/scripts/deploy.sh
