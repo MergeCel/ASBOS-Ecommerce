@@ -21,7 +21,7 @@ app = Flask(__name__)
 app.json.ensure_ascii = False
 
 DB_CONFIG = {
-    "host": os.getenv("DB_HOST", "host.docker.internal"),
+    "host": os.getenv("DB_HOST", "db"),
     "port": int(os.getenv("DB_PORT", "5432")),
     "dbname": os.getenv("DB_NAME", "ecommerce_db"),
     "user": os.getenv("DB_USER", "ecommerce_user"),

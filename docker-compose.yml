@@ -13,19 +13,41 @@ services:
     container_name: ecommerce-api
     restart: unless-stopped
     environment:
-      DB_HOST: ${DB_HOST:-host.docker.internal}
-      DB_PORT: ${DB_PORT:-5432}
+      # Nama service "db" hanya bisa di-resolve di network Docker Compose.
+      DB_HOST: db
+      DB_PORT: "5432"
       DB_NAME: ${DB_NAME:-ecommerce_db}
       DB_USER: ${DB_USER:-ecommerce_user}
-      DB_PASSWORD: ${DB_PASSWORD:-}
-    extra_hosts:
-      # Membuat host.docker.internal tersedia di Linux (Docker Desktop sudah punya).
-      - "host.docker.internal:host-gateway"
+      DB_PASSWORD: ${DB_PASSWORD:-ecommerce_password}
     expose:
       - "5000"
+    depends_on:
+      db:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5000/api/health')"]
       interval: 30s
       timeout: 5s
       retries: 3
       start_period: 10s
+
+  db:
+    image: postgres:16-alpine
+    container_name: ecommerce-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-ecommerce_db}
+      POSTGRES_USER: ${DB_USER:-ecommerce_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-ecommerce_password}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    # Sengaja tanpa "ports": database hanya dapat diakses dari network Compose.
+
+volumes:
+  db_data:
